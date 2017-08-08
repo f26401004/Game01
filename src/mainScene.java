@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.Scanner;
 import java.util.TimerTask;
 import java.util.Timer;
 import java.awt.image.*;
@@ -25,6 +27,8 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 	private static Byte bulletNum;
 	// define the array list to store the bullet.
 	private static ArrayList<Bullet> bulletList;
+	// define the array list to store the meteorite.
+	private static ArrayList<Meteorite> meteoriteList;
 	// define the fighter image
 	private static BufferedImage image;
 	// define the animate back picture.
@@ -32,6 +36,8 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 	// define the white back picture.
 	private static Image whiteBack;
 	private static float effectCounter;
+	// define timer
+	private static int time;
 	// define the phase.
 	private Byte phase;
 	// constructor of mainScene
@@ -52,7 +58,9 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
     	bulletNum = 50;
     	shoot = false;
     	effectCounter = 8;
+    	time = 0;
     	bulletList = new ArrayList<Bullet>();
+    	meteoriteList = new ArrayList<Meteorite>();
      	try {
      		image = ImageIO.read(new File("src/Graphics/fighter.png"));
      		aniBack = Toolkit.getDefaultToolkit().createImage("src/Graphics/animateBack.gif");
@@ -76,10 +84,18 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
         graphics.setColor(new Color(255, 255, 255));
 		graphics.drawImage(image, X, Y, null);
 		// draw the bullet.
-		for (Bullet iter: bulletList) 
-			graphics.drawImage(iter.getImage(), iter.getX(), iter.getY(), null);
+		for (int i = 0 ; i < bulletList.size() ; ++i)
+			graphics.drawImage(bulletList.get(i).getImage(), bulletList.get(i).getX(), bulletList.get(i).getY(), null);
+		// draw the meteorite
+		for (int i = 0 ; i < meteoriteList.size() ; ++i)
+			graphics.drawImage(meteoriteList.get(i).getImage(), meteoriteList.get(i).getX(), meteoriteList.get(i).getY(), null);
 		// draw the rest number of bullet.
 		graphics.drawString("¤l¼u¼Æ¶q   " + Integer.toString(bulletNum), 650, 30);
+		// draw the time
+		int hour = (time / 3600);
+		int min = (time % 3600) / 60;
+		int sec = (time % 3600) % 60;
+		graphics.drawString("time "+ Integer.toString(hour) + ":" + Integer.toString(min) + ":" + Integer.toString(sec), 650, 60);
 		// deal the shoot effect.
 		if (shoot && effectCounter > 0)
 		{
@@ -186,7 +202,18 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 		    	// deal the frame per second calculation.
 				++frameCount;
 				if (frameCount > frameRate)
+				{
 					frameCount = 1;
+					++time;
+					// randomly read the map data
+					Random rand = new Random();
+					try {
+						readMap(rand.nextInt(27));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 				// update the movement.
 				moveUpdate();
 				// repaint the screen.
@@ -215,11 +242,80 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 			forceY = Math.min(forceY + obstruct, 0.0);
 		for (int i = 0; i < bulletList.size(); ++i)
 			bulletList.get(i).refresh();
+		for (int i = 0; i < meteoriteList.size(); ++i)
+			meteoriteList.get(i).refresh();		
 		// lock the bulletList and check the bullet reach the boundary.
 		synchronized (bulletList)
 		{
 			if (bulletList.size() > 0 && bulletList.get(0).getX() > 800)
 				bulletList.remove(0);
 		}
+		// lock the meteoriteList and check the meteorite reach the boundary.
+		synchronized (meteoriteList)
+		{
+			for (int i = 0; i < meteoriteList.size(); ++i)
+			if (meteoriteList.get(i).getX() < -250)
+				meteoriteList.remove(i);
+		}
+	}
+	// read the map through the text file
+	private static void readMap(int index) throws IOException
+	{
+		/*
+		// open the map text file.
+		FileReader mapText = new FileReader("src/map.txt");
+		// create a reader to read the data.
+		BufferedReader reader = new BufferedReader(mapText);
+		int n = 0;
+		while (reader.read() != -1 && n < index)
+		{
+			reader.skip(10);
+			++n;
+		}
+		while (reader.read() != -1) 
+		{
+			if ((char)reader.read() == '0')
+			{
+				reader.skip(1);
+				continue;
+			}
+			if ((char)reader.read() == '\r' || (char)reader.read() == '\n')
+				break;
+			Random rand = new Random();
+			meteoriteList.add(new Meteorite(n * 5 * rand.nextInt(13), rand.nextInt(4) + 1));
+		}
+		mapText.close();
+		*/
+		try {
+		    int n = 0;
+		    Scanner scan = new Scanner(System.in);
+		    File file = new File("src/map.txt");
+		    scan = new Scanner(file);
+			while (scan.hasNextLine() && n < index)
+			{
+				scan.nextLine();
+				++n;
+			}
+			n = 0;
+		    while (scan.hasNextLine() && n < 10){
+		    	String s = scan.nextLine();
+		        for(int i = 0 ; i < s.length() ; i += 2)
+		        {
+		        	String ss;
+		        	ss = s.substring(i, i + 1);		        	
+		            if(ss.equals("M"))
+		            {
+		            	System.out.println(ss);
+		                Random rand = new Random();
+		                meteoriteList.add(new Meteorite(n * 60, rand.nextInt(4) + 1));
+		            }
+		        }
+		        ++n;
+		    }
+		    System.out.println(meteoriteList);
+		  }
+		  catch(Exception e){
+
+		  }		
 	}
 }

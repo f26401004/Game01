@@ -1,7 +1,5 @@
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.lang.Math;
-
 import javax.imageio.ImageIO;
 
 public class Bullet 

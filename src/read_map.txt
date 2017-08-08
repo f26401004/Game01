@@ -1,0 +1,24 @@
+	// read the map through the text file
+	private static void readMap(int index) throws IOException
+	{
+		// open the map text file.
+		FileReader mapText = new FileReader("src/map.txt");
+		// create a reader to read the data.
+		BufferedReader reader = new BufferedReader(mapText);
+		int n = 0;
+		while (reader.read() != -1 && n < index)
+		{
+			reader.skip(19);
+		}
+		while (reader.read() != -1 && n < 10) 
+		{
+			if ((char)reader.read() == ' ' || Integer.toreader.read().equals('0'))
+				reader.skip(1);
+			if ((char)reader.read() == '\r' || (char)reader.read() == '\n')
+				break;
+			Random rand = new Random();
+			meteoriteList.add(new Meteorite(n * 60, rand.nextInt(4) + 1));
+			++n;
+		}
+		mapText.close();
+	}
