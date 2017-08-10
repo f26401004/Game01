@@ -23,6 +23,8 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 	private static Double forceX;
 	private static Double forceY;
 	private static boolean shoot;
+	// define the HP
+	private static Integer HP;
 	// define the bullet number.
 	private static Byte bulletNum;
 	// define the array list to store the bullet.
@@ -59,6 +61,7 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
     	shoot = false;
     	effectCounter = 8;
     	time = 0;
+    	HP = 100;
     	bulletList = new ArrayList<Bullet>();
     	meteoriteList = new ArrayList<Meteorite>();
      	try {
@@ -89,6 +92,9 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 		// draw the meteorite
 		for (int i = 0 ; i < meteoriteList.size() ; ++i)
 			graphics.drawImage(meteoriteList.get(i).getImage(), meteoriteList.get(i).getX(), meteoriteList.get(i).getY(), null);
+		// draw the HP bar
+		graphics.drawString("HP                " + Integer.toString(HP) + "/100", 20, 30);
+		graphics.fillRect(20, 40, (int)(200 * HP.floatValue() / 100.0), 10);
 		// draw the rest number of bullet.
 		graphics.drawString("¤l¼u¼Æ¶q   " + Integer.toString(bulletNum), 650, 30);
 		// draw the time
@@ -208,7 +214,7 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 					// randomly read the map data
 					Random rand = new Random();
 					try {
-						readMap(rand.nextInt(27));
+						readMap(rand.nextInt(26));
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -216,6 +222,8 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 				}
 				// update the movement.
 				moveUpdate();
+				// check collision
+				checkCollision();
 				// repaint the screen.
 				scene.repaint();
 		    }
@@ -261,36 +269,13 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 	// read the map through the text file
 	private static void readMap(int index) throws IOException
 	{
-		/*
-		// open the map text file.
-		FileReader mapText = new FileReader("src/map.txt");
-		// create a reader to read the data.
-		BufferedReader reader = new BufferedReader(mapText);
-		int n = 0;
-		while (reader.read() != -1 && n < index)
-		{
-			reader.skip(10);
-			++n;
-		}
-		while (reader.read() != -1) 
-		{
-			if ((char)reader.read() == '0')
-			{
-				reader.skip(1);
-				continue;
-			}
-			if ((char)reader.read() == '\r' || (char)reader.read() == '\n')
-				break;
-			Random rand = new Random();
-			meteoriteList.add(new Meteorite(n * 5 * rand.nextInt(13), rand.nextInt(4) + 1));
-		}
-		mapText.close();
-		*/
 		try {
 		    int n = 0;
+		    // use scanner to read the txt.
 		    Scanner scan = new Scanner(System.in);
 		    File file = new File("src/map.txt");
 		    scan = new Scanner(file);
+		    // jump to the target line
 			while (scan.hasNextLine() && n < index)
 			{
 				scan.nextLine();
@@ -302,20 +287,38 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 		        for(int i = 0 ; i < s.length() ; i += 2)
 		        {
 		        	String ss;
-		        	ss = s.substring(i, i + 1);		        	
+		        	ss = s.substring(i, i + 1);	
+		        	// if the map character is equal to M, then add the meteorite in random type.
 		            if(ss.equals("M"))
 		            {
-		            	System.out.println(ss);
 		                Random rand = new Random();
-		                meteoriteList.add(new Meteorite(n * 60, rand.nextInt(4) + 1));
+		                meteoriteList.add(new Meteorite(n * 60, rand.nextInt(3) + 1));
 		            }
+		            ++n;
 		        }
-		        ++n;
 		    }
-		    System.out.println(meteoriteList);
 		  }
 		  catch(Exception e){
-
 		  }		
+	}
+	private static void checkCollision()
+	{
+		// use for loop to check all element collision.
+		for (int i = 0 ; i < meteoriteList.size() ; ++i)
+		{
+			if (meteoriteList.get(i).collision(X + 25, Y + 25))
+				HP -= 1;
+			for (int j = 0 ; j < bulletList.size() ; ++j)
+			{
+				if (meteoriteList.get(i).collision(bulletList.get(j).getX() + 12, bulletList.get(j).getY() + 12))
+				{
+					// lock the meteoriteList an remove the target.
+					synchronized (meteoriteList)
+					{
+						meteoriteList.remove(i);
+					}
+				}
+			}
+		}
 	}
 }
