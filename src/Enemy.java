@@ -1,8 +1,10 @@
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Random;
+
 import javax.imageio.ImageIO;
 
-public class Meteorite extends Object
+public class Enemy extends Object
 {
 	private int X;
 	private int Y;
@@ -11,30 +13,38 @@ public class Meteorite extends Object
 	private int type;
 	private BufferedImage image;
 	
-	public Meteorite(int YValue, int type)
+	public Enemy(int type)
 	{
-		X = 800;
-		Y = YValue;
-		velocityX = -3;
-		velocityY = 0;
 		this.type = type;
+		X = 800;
+		Random rand = new Random();
+		Y = (rand.nextInt(10) + 1) * 60;
+		velocityX = 0;
+		velocityY = 0;
      	try {
-     		image = ImageIO.read(new File("src/Graphics/meteorite_" + Integer.toString(type) + ".png"));
+     		image = ImageIO.read(new File("src/Graphics/enemy_" + Integer.toString(type) + ".png"));
         }
         catch (Exception ex) {
-            System.out.println("No meteorite_" + Integer.toString(type) + ".png!!");
+            System.out.println("No enemy_" + Integer.toString(type) + ".png!!");
         }
+				
 	}
-	public void refresh()
+	
+	public void refresh(int targetX, int targetY)
 	{
-		// refresh the properties.
-		X = X + (int)velocityX;
-		Y = Y + (int)velocityY;
-		// deal the obstruct effect.
-		if (velocityY > 0)
-			velocityY = Math.max(velocityY - 0.1, 0.0);
-		else
-			velocityY = Math.min(velocityY + 0.1, 0.0);
+		X += velocityX;
+		Y += velocityY;
+		velocityY = (targetY - (Y + image.getHeight() / 2)) / 30;
+		velocityX = ((X + image.getWidth() / 2) - targetX) > 500 ? -2 : 0;
+	}
+	
+	public void setX(int XValue)
+	{
+		X = XValue;
+	}
+	public void setY(int YValue)
+	{
+		Y = YValue;
 	}
 	public int getX()
 	{

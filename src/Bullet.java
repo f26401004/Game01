@@ -2,7 +2,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
 
-public class Bullet 
+public class Bullet extends Object
 {
 	private int X;
 	private int Y;

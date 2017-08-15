@@ -23,14 +23,17 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 	private static Double forceX;
 	private static Double forceY;
 	private static boolean shoot;
+	private static Random rand;
 	// define the HP
-	private static Integer HP;
+	private static Double HP;
 	// define the bullet number.
 	private static Byte bulletNum;
 	// define the array list to store the bullet.
 	private static ArrayList<Bullet> bulletList;
 	// define the array list to store the meteorite.
 	private static ArrayList<Meteorite> meteoriteList;
+	// define the array list to store the enemy.
+	private static Enemy enemy;
 	// define the fighter image
 	private static BufferedImage image;
 	// define the animate back picture.
@@ -61,9 +64,11 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
     	shoot = false;
     	effectCounter = 8;
     	time = 0;
-    	HP = 100;
+    	HP = 100.0;
     	bulletList = new ArrayList<Bullet>();
     	meteoriteList = new ArrayList<Meteorite>();
+    	enemy = new Enemy(1);
+    	rand = new Random();
      	try {
      		image = ImageIO.read(new File("src/Graphics/fighter.png"));
      		aniBack = Toolkit.getDefaultToolkit().createImage("src/Graphics/animateBack.gif");
@@ -92,9 +97,12 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 		// draw the meteorite
 		for (int i = 0 ; i < meteoriteList.size() ; ++i)
 			graphics.drawImage(meteoriteList.get(i).getImage(), meteoriteList.get(i).getX(), meteoriteList.get(i).getY(), null);
+		// draw the enemy
+		if (enemy != null)
+			graphics.drawImage(enemy.getImage(), enemy.getX(), enemy.getY(), null);
 		// draw the HP bar
-		graphics.drawString("HP                " + Integer.toString(HP) + "/100", 20, 30);
-		graphics.fillRect(20, 40, (int)(200 * HP.floatValue() / 100.0), 10);
+		graphics.drawString("HP                " + Integer.toString(HP.intValue()) + "/100", 20, 30);
+		graphics.fillRect(20, 40, (int)(200 * HP / 100.0), 10);
 		// draw the rest number of bullet.
 		graphics.drawString("¤l¼u¼Æ¶q   " + Integer.toString(bulletNum), 650, 30);
 		// draw the time
@@ -211,8 +219,10 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 				{
 					frameCount = 1;
 					++time;
+					// generate the enemy
+					if (enemy.equals(null))
+						enemy = new Enemy(1);
 					// randomly read the map data
-					Random rand = new Random();
 					try {
 						readMap(rand.nextInt(26));
 					} catch (IOException e) {
@@ -220,6 +230,7 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 						e.printStackTrace();
 					}
 				}
+
 				// update the movement.
 				moveUpdate();
 				// check collision
@@ -252,6 +263,7 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 			bulletList.get(i).refresh();
 		for (int i = 0; i < meteoriteList.size(); ++i)
 			meteoriteList.get(i).refresh();		
+		enemy.refresh(X + 25, Y + 25);		
 		// lock the bulletList and check the bullet reach the boundary.
 		synchronized (bulletList)
 		{
@@ -290,10 +302,7 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 		        	ss = s.substring(i, i + 1);	
 		        	// if the map character is equal to M, then add the meteorite in random type.
 		            if(ss.equals("M"))
-		            {
-		                Random rand = new Random();
 		                meteoriteList.add(new Meteorite(n * 60, rand.nextInt(3) + 1));
-		            }
 		            ++n;
 		        }
 		    }
@@ -303,11 +312,11 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 	}
 	private static void checkCollision()
 	{
-		// use for loop to check all element collision.
+		// use for loop to check all meteorite collision.
 		for (int i = 0 ; i < meteoriteList.size() ; ++i)
 		{
 			if (meteoriteList.get(i).collision(X + 25, Y + 25))
-				HP -= 1;
+				HP -= 0.5;
 			for (int j = 0 ; j < bulletList.size() ; ++j)
 			{
 				if (meteoriteList.get(i).collision(bulletList.get(j).getX() + 12, bulletList.get(j).getY() + 12))
@@ -318,7 +327,13 @@ public class mainScene extends JComponent implements MouseListener, KeyListener
 						meteoriteList.remove(i);
 					}
 				}
+				if (enemy.collision(bulletList.get(j).getX() + 12 , bulletList.get(j).getY() + 12))
+				{
+					enemy.setX(800);
+					enemy.setY((rand.nextInt(10) + 1) * 60);
+				}
 			}
 		}
+		
 	}
 }
